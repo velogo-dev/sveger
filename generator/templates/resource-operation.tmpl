@@ -1,0 +1,46 @@
+import type { AxiosInstance, AxiosRequestConfig } from 'axios';
+{{if .HasPathParams}}import { createRequestConfig, replacePath, validatePathParams } from '../../../utils/helpers';{{else}}import { createRequestConfig } from '../../../utils/helpers';{{end}}
+import { withErrorHandling } from '../../../utils/error-handler';
+{{if .HasTypes}}import * as Types from '../../../types/index';{{end}}
+
+{{if .HasQueryParams}}export interface {{.Name}}Query {
+{{range .QueryParams}}  /** {{.Description}} */
+  {{.Name}}?: {{.Type}};
+{{end}}}
+
+{{end}}/**
+ * @description {{.Description}}
+ * @tags {{.Tags}}
+ * @name {{.Name}}
+ * @summary {{.Summary}}
+ * @request {{.HttpMethod}}:{{.Path}}
+ */
+export const {{.Name}} = (client: AxiosInstance) => async ({{if .HasPathParams}}{{range $i, $param := .PathParams}}{{if $i}},
+  {{end}}{{$param.Name}}: {{$param.Type}}{{end}},{{end}}{{if .HasQueryParams}}
+  query?: {{.Name}}Query,{{end}}{{if .HasRequestBody}}
+  data: {{.RequestBodyType}},{{end}}
+  config?: AxiosRequestConfig,
+): Promise<{{.ReturnType}}> => {
+  return withErrorHandling(async () => {
+{{if .HasPathParams}}    // Validate path parameters
+    const pathParams = { {{range $i, $param := .PathParams}}{{if $i}}, {{end}}{{$param.Name}}{{end}} };
+    validatePathParams('{{.PathTemplate}}', pathParams);
+    
+    // Replace path parameters
+    const url = replacePath('{{.PathTemplate}}', pathParams);
+{{else}}    const url = '{{.PathTemplate}}';
+{{end}}
+{{if .HasQueryParams}}    // Create request configuration with query parameters
+    const requestConfig = createRequestConfig(query, config);
+{{else}}    const requestConfig = createRequestConfig(undefined, config);
+{{end}}
+    // Make the API request
+    const response = await client.{{.Method}}<{{.ReturnType}}>(
+      url,{{if .HasRequestBody}}
+      data,{{end}}
+      requestConfig,
+    );
+
+    return response.data;
+  });
+};

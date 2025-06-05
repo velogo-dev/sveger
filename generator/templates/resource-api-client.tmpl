@@ -1,0 +1,27 @@
+import type { AxiosInstance } from 'axios';
+import { apiClient } from '../../config/axios.config';
+
+// Import all operations for this resource
+{{range .Operations}}import { {{.Name}} } from './operations/{{.FileName}}';
+{{end}}
+
+/**
+ * {{.ResourceName}} API Client
+ * Contains all operations related to {{.ResourceName}}
+ */
+export class {{.ResourceName}}ApiClient {
+  private client: AxiosInstance;
+
+  constructor(client: AxiosInstance = apiClient) {
+    this.client = client;
+  }
+
+  // Resource operations
+{{range .Operations}}  get {{.Name}}() { return {{.Name}}(this.client); }
+{{end}}
+}
+
+/**
+ * Default {{.ResourceName}} API client instance
+ */
+export const {{.ResourceNameLower}}Api = new {{.ResourceName}}ApiClient();

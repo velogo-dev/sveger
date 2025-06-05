@@ -1,0 +1,52 @@
+// ===== MAIN API INDEX =====
+// Auto-generated API client exports
+
+// Configuration
+import { createAxiosInstance } from './config/axios.config';
+import type { ApiConfig, AxiosInstance } from './config/axios.config';
+export { createAxiosInstance, apiClient } from './config/axios.config';
+export { API_CONSTANTS } from './config/constants';
+export type { ApiConfig };
+
+// Types
+export * from './types/index';
+
+// Utils
+export { handleApiError, createApiError, isApiError, withErrorHandling } from './utils/error-handler';
+export { QueryBuilder, createQueryBuilder, cleanQueryParams, buildSearchParams } from './utils/query-builder';
+export { mergeConfigs, createRequestConfig, replacePath, validatePathParams, createFormData, delay, retryWithBackoff, debounce, throttle } from './utils/helpers';
+
+// Resource API Clients
+{{range .Resources}}import { {{.ResourceName}}ApiClient, {{.ResourceNameLower}}Api } from './resources/{{.ResourceNameLower}}/{{.ResourceNameLower}}-api.client';
+{{end}}
+{{range .Resources}}export { {{.ResourceName}}ApiClient, {{.ResourceNameLower}}Api };
+{{end}}
+
+// Create a unified API client that includes all resources
+export class ApiClient {
+{{range .Resources}}  readonly {{.ResourceNameLower}}: {{.ResourceName}}ApiClient;
+{{end}}
+
+  constructor(configOrClient?: ApiConfig | AxiosInstance) {
+    let client: AxiosInstance;
+    
+    if (configOrClient) {
+      // Check if it's an AxiosInstance or config object
+      if ('request' in configOrClient && 'get' in configOrClient) {
+        // It's an AxiosInstance
+        client = configOrClient;
+      } else {
+        // It's an ApiConfig object
+        client = createAxiosInstance(configOrClient as ApiConfig);
+      }
+{{range .Resources}}      this.{{.ResourceNameLower}} = new {{.ResourceName}}ApiClient(client);
+{{end}}    } else {
+{{range .Resources}}      this.{{.ResourceNameLower}} = {{.ResourceNameLower}}Api;
+{{end}}    }
+  }
+}
+
+/**
+ * Default unified API client instance
+ */
+export const api = new ApiClient();

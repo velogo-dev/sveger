@@ -1,0 +1,90 @@
+import axios, { AxiosInstance } from 'axios';
+
+export interface ApiConfig {
+  baseURL: string;
+  timeout?: number;
+  headers?: Record<string, string>;
+{{if .WithInterceptors}}
+  onRequest?: (config: any) => any;
+  onResponse?: (response: any) => any;
+  onError?: (error: any) => any;
+{{end}}
+}
+
+export const config: ApiConfig = {
+  baseURL: '{{.BaseURL}}',
+  timeout: {{.Timeout}},
+  headers: {}
+};
+
+{{if .WithInterceptors}}
+config.onRequest = (requestConfig: any) => {
+  // Add custom request interceptor logic here
+  return requestConfig;
+};
+
+config.onResponse = (response: any) => {
+  // Add custom response interceptor logic here
+  return response;
+};
+
+config.onError = (error: any) => {
+  // Add custom error interceptor logic here
+  return Promise.reject(error);
+};
+{{end}}
+
+export const apiClient: AxiosInstance = axios.create({
+  baseURL: config.baseURL,
+  timeout: config.timeout,
+  headers: config.headers
+});
+
+{{if .WithInterceptors}}
+// Request interceptor
+apiClient.interceptors.request.use(
+  config.onRequest,
+  error => Promise.reject(error)
+);
+
+// Response interceptor
+apiClient.interceptors.response.use(
+  config.onResponse,
+  config.onError
+);
+{{end}}
+
+// Authentication helper
+export function setAuthToken(token: string, type: '{{.AuthType}}' = '{{.AuthType}}'): void {
+  if (type === 'bearer') {
+    apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else if (type === 'apikey') {
+    apiClient.defaults.headers.common['{{.HeaderName}}'] = token;
+  } else if (type === 'basic') {
+    apiClient.defaults.headers.common['Authorization'] = `Basic ${token}`;
+  }
+}
+
+// User-specific configuration
+export interface UserConfig {
+  {{.TokenKey}}: string;
+  // Add any other user-specific configuration here
+}
+
+// Load user configuration (implement based on your needs)
+export function loadUserConfig(): UserConfig | null {
+  // Example: Load from localStorage, environment variables, or config file
+  const token = localStorage.getItem('{{.TokenKey}}');
+  if (token) {
+    return { {{.TokenKey}}: token };
+  }
+  return null;
+}
+
+// Initialize with user config
+export function initialize(): void {
+  const userConfig = loadUserConfig();
+  if (userConfig && userConfig.{{.TokenKey}}) {
+    setAuthToken(userConfig.{{.TokenKey}});
+  }
+}

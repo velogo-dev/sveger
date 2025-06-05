@@ -1,0 +1,32 @@
+// Generated types from OpenAPI specification
+
+{{range $name, $type := .Types -}}
+{{if $type.IsReference -}}
+export type {{$name}} = {{$type.RefName}};
+
+{{else if $type.IsInterface -}}
+export interface {{$name}} {
+{{- range $propName, $prop := $type.Properties}}
+  {{$propName}}{{if $prop.Optional}}?{{end}}: {{$prop.Type}};
+{{- end}}
+}
+
+{{else if $type.IsArray -}}
+export type {{$name}} = {{$type.ItemType}}[];
+
+{{else if $type.IsEnum -}}
+{{if $type.EnumMembers -}}
+export enum {{$name}} {
+{{- range $member := $type.EnumMembers}}
+  {{$member.Name}} = {{$member.Value}},
+{{- end}}
+}
+{{else -}}
+export type {{$name}} = {{range $i, $val := $type.EnumValues}}{{if $i}} | {{end}}{{$val}}{{end}};
+{{end}}
+
+{{else -}}
+export type {{$name}} = {{$type.Type}};
+
+{{end -}}
+{{end -}}

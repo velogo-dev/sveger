@@ -1,0 +1,58 @@
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import * as Types from './types';
+
+export interface ApiConfig {
+  baseURL?: string;
+  timeout?: number;
+  headers?: Record<string, string>;
+}
+
+export class Api {
+  private client: AxiosInstance;
+
+  constructor(config?: ApiConfig) {
+    this.client = axios.create({
+      baseURL: config?.baseURL || 'https://api.example.com',
+      timeout: config?.timeout || 10000,
+      headers: config?.headers || {},
+    });
+  }
+
+  public get api() {
+    return {
+{{range .Methods}}
+      /**
+       * @description {{.Description}}
+       * @tags {{.Tags}}
+       * @name {{.Name}}
+       * @summary {{.Summary}}
+       * @request {{.HttpMethod}}:{{.Path}}
+       */
+      {{.Name}}: ({{if .HasQueryParams}}
+        query?: {
+{{range .QueryParams}}          /** {{.Description}} */
+          {{.Name}}?: {{.Type}};
+{{end}}        },{{end}}{{if .HasPathParams}}{{range .PathParams}}
+        {{.Name}}: {{.Type}},{{end}}{{end}}{{if .HasRequestBody}}
+        data: {{.RequestBodyType}},{{end}}
+        config?: AxiosRequestConfig,
+      ) => {
+{{if .HasQueryParams}}        const requestConfig: AxiosRequestConfig = { ...config };
+        if (query) {
+          requestConfig.params = { ...requestConfig.params };
+{{range .QueryParams}}          if (query.{{.Name}} !== undefined) {
+            requestConfig.params['{{.Name}}'] = query.{{.Name}};
+          }
+{{end}}        }
+{{else}}        const requestConfig: AxiosRequestConfig = { ...config };
+{{end}}
+        return this.client.{{.Method}}<{{.ReturnType}}>(
+          `{{.PathTemplate}}`{{if .HasPathParams}}{{range .PathParams}}.replace('{{`{`}}{{.Name}}{{`}`}}', String({{.Name}})){{end}}{{end}},{{if .HasRequestBody}}
+          data,{{end}}
+          requestConfig,
+        ).then(response => response.data);
+      },
+{{end}}
+    };
+  }
+}

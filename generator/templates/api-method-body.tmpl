@@ -1,0 +1,31 @@
+{{if .HasConfig}}const config: any = {};{{end}}
+{{if .HasQueryParams}}
+config.params = {};
+{{range .QueryParams}}
+{{if .Required}}
+config.params['{{.Name}}'] = {{.ParamName}};
+{{else}}
+if ({{.ParamName}} !== undefined) {
+  config.params['{{.Name}}'] = {{.ParamName}};
+}
+{{end}}
+{{end}}
+{{end}}
+{{if .HasFormData}}
+const formData = new FormData();
+{{range .FormParams}}
+{{if .Required}}
+formData.append('{{.Name}}', {{.ParamName}});
+{{else}}
+if ({{.ParamName}} !== undefined) {
+  formData.append('{{.Name}}', {{.ParamName}});
+}
+{{end}}
+{{end}}
+{{end}}
+{{if .HasRequestBody}}
+const response = await apiClient.{{.Method}}(`{{.Path}}`{{if .HasPathParams}}.replace({{range .PathParams}}'{{`{`}}{{.Name}}{{`}`}}', String({{.ParamName}}){{if not .IsLast}}).replace({{end}}{{end}}){{end}}, {{.RequestBody}}{{if .HasConfig}}, config{{end}});
+{{else}}
+const response = await apiClient.{{.Method}}(`{{.Path}}`{{if .HasPathParams}}.replace({{range .PathParams}}'{{`{`}}{{.Name}}{{`}`}}', String({{.ParamName}}){{if not .IsLast}}).replace({{end}}{{end}}){{end}}{{if .HasConfig}}, config{{end}});
+{{end}}
+return response.data;
