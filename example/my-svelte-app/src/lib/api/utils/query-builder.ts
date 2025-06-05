@@ -73,7 +73,7 @@ export class QueryBuilder {
   /**
    * Add a single parameter
    */
-  param(key: string, value: any): QueryBuilder {
+  add(key: string, value: any): QueryBuilder {
     if (value !== undefined && value !== null) {
       this.params[key] = value;
     }
@@ -81,14 +81,41 @@ export class QueryBuilder {
   }
 
   /**
+   * Add a single parameter (alias for add)
+   */
+  param(key: string, value: any): QueryBuilder {
+    return this.add(key, value);
+  }
+
+  /**
    * Add multiple parameters
    */
-  params(params: QueryParams): QueryBuilder {
+  addParams(params: QueryParams): QueryBuilder {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         this.params[key] = value;
       }
     });
+    return this;
+  }
+
+  /**
+   * Add an array parameter
+   */
+  addArray(key: string, values: any[]): QueryBuilder {
+    if (values && values.length > 0) {
+      this.params[key] = values.join(',');
+    }
+    return this;
+  }
+
+  /**
+   * Add a boolean parameter
+   */
+  addBoolean(key: string, value: boolean): QueryBuilder {
+    if (value !== undefined && value !== null) {
+      this.params[key] = value.toString();
+    }
     return this;
   }
 
