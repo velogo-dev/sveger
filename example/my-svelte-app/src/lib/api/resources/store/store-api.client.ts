@@ -2,10 +2,10 @@ import type { AxiosInstance } from 'axios';
 import { apiClient } from '../../config/axios.config';
 
 // Import all operations for this resource
+import { getInventory } from './operations/get-inventory';
 import { placeOrder } from './operations/place-order';
 import { getOrderById } from './operations/get-order-by-id';
 import { deleteOrder } from './operations/delete-order';
-import { getInventory } from './operations/get-inventory';
 
 
 /**
@@ -20,10 +20,10 @@ export class StoreApiClient {
   }
 
   // Resource operations
+  get getInventory() { return getInventory(this.client); }
   get placeOrder() { return placeOrder(this.client); }
   get getOrderById() { return getOrderById(this.client); }
   get deleteOrder() { return deleteOrder(this.client); }
-  get getInventory() { return getInventory(this.client); }
 
 }
 

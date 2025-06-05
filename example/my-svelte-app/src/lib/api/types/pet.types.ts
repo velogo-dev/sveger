@@ -1,5 +1,11 @@
 // Generated types from OpenAPI specification
 
+export interface ApiResponse {
+  code?: number;
+  message?: string;
+  type?: string;
+}
+
 export interface Category {
   id?: number;
   name?: string;
